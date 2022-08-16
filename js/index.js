@@ -8,7 +8,7 @@ export const rule = {
     describe: "表情制作",
   },
   petpet_help:{
-    reg: "#petpet帮助",
+    reg: "#表情制作教程",
     priority: 800,
     describe: "petpet帮助",
   }
