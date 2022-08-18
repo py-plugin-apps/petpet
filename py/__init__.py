@@ -1,10 +1,21 @@
 from core import Handler, Request, Response, BytesIOToBytes, BytesToBuildImage
+from core.lib.type import User
 from .functions import *
 from .download import download_avatar
 
-import io
-
 package = "petpet"
+
+
+class Info:
+    def __init__(self, user: User, request: Request):
+        self.qq = user.qq
+        self.group = request.event.group.qq
+        self.name = user.name
+        self.gender = "unknown"
+
+    async def init(self):
+        self.img = BytesToBuildImage(await download_avatar(self.qq)).resize((640, 640)).convert("RGBA")
+        return self
 
 
 @Handler.FrameToFrame
@@ -181,6 +192,30 @@ async def _loading(request: Request) -> Response:
 
 
 @Handler.FrameToFrame
+async def _turn(request: Request) -> Response:
+    if request.event.imageList:
+        bytes_img = request.event.imageList[0]
+    elif request.event.atList:
+        bytes_img = await download_avatar(request.event.atList[0].qq)
+    else:
+        bytes_img = await download_avatar(request.event.sender.qq)
+
+    image = turn(BytesToBuildImage(bytes_img))
+    return Response(image=BytesIOToBytes(image))
+
+
+@Handler.FrameToFrame
+async def _littleangel(request: Request) -> Response:
+    if request.event.atList:
+        user = request.event.atList[0]
+    else:
+        user = request.event.sender
+
+    image = littleangel(await Info(user, request).init(), request.message)
+    return Response(image=BytesIOToBytes(image))
+
+
+@Handler.FrameToFrame
 async def _dont_touch(request: Request) -> Response:
     if request.event.imageList:
         bytes_img = request.event.imageList[0]
@@ -298,6 +333,17 @@ async def _police1(request: Request) -> Response:
 
 
 @Handler.FrameToFrame
+async def _ask(request: Request) -> Response:
+    if request.event.atList:
+        user = request.event.atList[0]
+    else:
+        user = request.event.sender
+
+    image = ask(await Info(user, request).init(), request.message)
+    return Response(image=BytesIOToBytes(image))
+
+
+@Handler.FrameToFrame
 async def _prpr(request: Request) -> Response:
     if request.event.imageList:
         bytes_img = request.event.imageList[0]
@@ -350,6 +396,17 @@ async def _china_flag(request: Request) -> Response:
 
 
 @Handler.FrameToFrame
+async def _make_friend(request: Request) -> Response:
+    if request.event.atList:
+        user = request.event.atList[0]
+    else:
+        user = request.event.sender
+
+    image = make_friend(await Info(user, request).init(), request.message)
+    return Response(image=BytesIOToBytes(image))
+
+
+@Handler.FrameToFrame
 async def _back_to_work(request: Request) -> Response:
     if request.event.imageList:
         bytes_img = request.event.imageList[0]
@@ -376,6 +433,30 @@ async def _perfect(request: Request) -> Response:
 
 
 @Handler.FrameToFrame
+async def _follow(request: Request) -> Response:
+    if request.event.atList:
+        user = request.event.atList[0]
+    else:
+        user = request.event.sender
+
+    image = follow(await Info(user, request).init(), request.message)
+    return Response(image=BytesIOToBytes(image))
+
+
+@Handler.FrameToFrame
+async def _my_friend(request: Request) -> Response:
+    user = request.event.atList[0]
+
+    image = my_friend(
+        await Info(user, request).init(),
+        await Info(request.event.sender, request).init(),
+        "",
+        request.message.split(" ")
+    )
+    return Response(image=BytesIOToBytes(image))
+
+
+@Handler.FrameToFrame
 async def _paint(request: Request) -> Response:
     if request.event.imageList:
         bytes_img = request.event.imageList[0]
@@ -385,6 +466,17 @@ async def _paint(request: Request) -> Response:
         bytes_img = await download_avatar(request.event.sender.qq)
 
     image = paint(BytesToBuildImage(bytes_img))
+    return Response(image=BytesIOToBytes(image))
+
+
+@Handler.FrameToFrame
+async def _coupon(request: Request) -> Response:
+    if request.event.atList:
+        user = request.event.atList[0]
+    else:
+        user = request.event.sender
+
+    image = coupon(await Info(user, request).init(), request.message)
     return Response(image=BytesIOToBytes(image))
 
 
@@ -436,7 +528,31 @@ async def _symmetric(request: Request) -> Response:
     else:
         bytes_img = await download_avatar(request.event.sender.qq)
 
-    image = symmetric(BytesToBuildImage(bytes_img), request.message)
+    image = symmetric(BytesToBuildImage(bytes_img), request.event.msg.replace("对称",""))
+    return Response(image=BytesIOToBytes(image))
+
+
+@Handler.FrameToFrame
+async def _safe_sense(request: Request) -> Response:
+    if request.event.atList:
+        user = request.event.atList[0]
+    else:
+        user = request.event.sender
+
+    image = safe_sense(await Info(user, request).init(), request.message)
+    return Response(image=BytesIOToBytes(image))
+
+
+@Handler.FrameToFrame
+async def _always_like(request: Request) -> Response:
+    if request.event.atList:
+        users = []
+        for i in request.event.atList:
+            users.append(await Info(i, request).init())
+    else:
+        users = [await Info(request.event.sender, request).init()]
+
+    image = always_like(users, request.message)
     return Response(image=BytesIOToBytes(image))
 
 
@@ -747,6 +863,19 @@ async def _painter(request: Request) -> Response:
 
 
 @Handler.FrameToFrame
+async def _repeat(request: Request) -> Response:
+    if request.event.atList:
+        users = []
+        for i in request.event.atList:
+            users.append(await Info(i, request).init())
+    else:
+        users = [await Info(request.event.sender, request).init()]
+
+    image = repeat(users, await Info(request.event.sender, request).init(), request.message)
+    return Response(image=BytesIOToBytes(image))
+
+
+@Handler.FrameToFrame
 async def _anti_kidnap(request: Request) -> Response:
     if request.event.imageList:
         bytes_img = request.event.imageList[0]
@@ -769,4 +898,54 @@ async def _charpic(request: Request) -> Response:
         bytes_img = await download_avatar(request.event.sender.qq)
 
     image = charpic(BytesToBuildImage(bytes_img))
+    return Response(image=BytesIOToBytes(image))
+
+
+@Handler.FrameToFrame
+async def _mywife(request: Request) -> Response:
+    if request.event.atList:
+        user = request.event.atList[0]
+    else:
+        user = request.event.sender
+
+    image = mywife(await Info(user, request).init(), "", "")
+    return Response(image=BytesIOToBytes(image))
+
+
+@Handler.FrameToFrame
+async def _walnutpad(request: Request) -> Response:
+    if request.event.imageList:
+        bytes_img = request.event.imageList[0]
+    elif request.event.atList:
+        bytes_img = await download_avatar(request.event.atList[0].qq)
+    else:
+        bytes_img = await download_avatar(request.event.sender.qq)
+
+    image = walnutpad(BytesToBuildImage(bytes_img))
+    return Response(image=BytesIOToBytes(image))
+
+
+@Handler.FrameToFrame
+async def _teach(request: Request) -> Response:
+    if request.event.imageList:
+        bytes_img = request.event.imageList[0]
+    elif request.event.atList:
+        bytes_img = await download_avatar(request.event.atList[0].qq)
+    else:
+        bytes_img = await download_avatar(request.event.sender.qq)
+
+    image = teach(BytesToBuildImage(bytes_img), request.message)
+    return Response(image=BytesIOToBytes(image))
+
+
+@Handler.FrameToFrame
+async def _addition(request: Request) -> Response:
+    if request.event.imageList:
+        bytes_img = request.event.imageList[0]
+    elif request.event.atList:
+        bytes_img = await download_avatar(request.event.atList[0].qq)
+    else:
+        bytes_img = await download_avatar(request.event.sender.qq)
+
+    image = addition(BytesToBuildImage(bytes_img), request.message)
     return Response(image=BytesIOToBytes(image))
