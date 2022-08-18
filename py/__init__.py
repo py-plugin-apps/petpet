@@ -528,7 +528,7 @@ async def _symmetric(request: Request) -> Response:
     else:
         bytes_img = await download_avatar(request.event.sender.qq)
 
-    image = symmetric(BytesToBuildImage(bytes_img), request.event.msg.replace("对称",""))
+    image = symmetric(BytesToBuildImage(bytes_img), request.event.msg.replace("对称", ""))
     return Response(image=BytesIOToBytes(image))
 
 
@@ -831,6 +831,9 @@ async def _keepaway(request: Request) -> Response:
         imageList.append(BytesToBuildImage(i))
     for i in request.event.atList:
         imageList.append(BytesToBuildImage(await download_avatar(i.qq)))
+
+    if not imageList:
+        imageList.append(BytesToBuildImage(await download_avatar(request.event.sender.qq)))
 
     image = keepaway(imageList, request.message)
     return Response(image=BytesIOToBytes(image))
